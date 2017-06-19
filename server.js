@@ -4,15 +4,18 @@ const express = require('express')
 const Slapp = require('slapp')
 const ConvoStore = require('slapp-convo-beepboop')
 const Context = require('slapp-context-beepboop')
+var slack = require('slack')
+
+
+
 
 // use `PORT` env var on Beep Boop - default to 3000 locally
-//var port = process.env.PORT || 3000
-var port = 8080;
+var port = process.env.PORT || 3000
 
 var slapp = Slapp({
   // Beep Boop sets the SLACK_VERIFY_TOKEN env var
   verify_token: process.env.SLACK_VERIFY_TOKEN,
-  convo_store: ConvoStore(),
+  convo_store: ConvoStore({ debug: true }),
   context: Context()
 })
 
@@ -38,7 +41,15 @@ slapp.message('help', ['mention', 'direct_message'], (msg) => {
 // get the most recent message in the channel
 slapp.message('recent', ['mention', 'direct_message'], (msg) => {
 
+  var token = msg.body.token;
+  var channel = msg.body.event.channel;
+
   // want to use https://api.slack.com/methods/channels.history/test API call here
+  ret = slack.channels.history({token, channel, 'count': 1}, (err, data) => { })
+
+  // most recent message
+  msg.say(`results ${JSON.stringify(ret)}`)
+
 
 })
 
@@ -134,4 +145,6 @@ server.listen(port, (err) => {
   }
 
   console.log(`Listening on port ${port}`)
+console.log("local")
+
 })
