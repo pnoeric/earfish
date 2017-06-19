@@ -15,7 +15,6 @@ var slapp = Slapp({
   context: Context()
 })
 
-
 var HELP_TEXT = `
 I will respond to the following messages:
 \`help\` - to see this message.
@@ -25,14 +24,23 @@ I will respond to the following messages:
 \`attachment\` - to see a Slack attachment message.
 `
 
-//*********************************************
+//* ********************************************
 // Setup different handlers for messages
-//*********************************************
+//* ********************************************
 
 // response to the user typing "help"
 slapp.message('help', ['mention', 'direct_message'], (msg) => {
   msg.say(HELP_TEXT)
 })
+
+
+// get the most recent message in the channel
+slapp.message('recent', ['mention', 'direct_message'], (msg) => {
+
+  // want to use https://api.slack.com/methods/channels.history/test API call here
+
+})
+
 
 // "Conversation" flow that tracks state - kicks off when user says hi, hello or hey
 slapp
@@ -107,6 +115,8 @@ slapp.message('attachment', ['mention', 'direct_message'], (msg) => {
 
 // Catch-all for any other responses not handled above
 slapp.message('.*', ['direct_mention', 'direct_message'], (msg) => {
+  msg.say(`You said `${JSON.stringify(msg});
+
   // respond only 40% of the time
   if (Math.random() < 0.4) {
     msg.say([':wave:', ':pray:', ':raised_hands:'])
