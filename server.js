@@ -6,7 +6,8 @@ const ConvoStore = require('slapp-convo-beepboop')
 const Context = require('slapp-context-beepboop')
 
 // use `PORT` env var on Beep Boop - default to 3000 locally
-var port = process.env.PORT || 3000
+//var port = process.env.PORT || 3000
+var port = 3000;
 
 var slapp = Slapp({
   // Beep Boop sets the SLACK_VERIFY_TOKEN env var
