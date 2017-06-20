@@ -57,8 +57,8 @@ slapp.command('/tron', /(.*)/, (msg, text, match) => {
     for (let s of data.messages) {
 
       // console.log("\n\n------------------");
-      // console.log(s);
-
+      console.log(s);
+/
       // add the translation as a reply to this individual message
       var reply_thread = s.ts;
       // console.log("reply thread is "+s.ts)
@@ -67,25 +67,58 @@ slapp.command('/tron', /(.*)/, (msg, text, match) => {
 
         var m = JSON.stringify(s.text)
 
+        console.log("\n\n\n message after stringify "+m);
+
         // translate it with Yandex - not as good as Google Translate, but it's free!
         // see https://tech.yandex.com/translate/doc/dg/reference/translate-docpage/
 
         // TODO let the user specify source and target languages
         var headers = {'accept' : "json"};
-        var post = 'https://translate.yandex.net/api/v1.5/tr.json/translate?lang=de-en&key=' + CONFIG.yandex_api_key + '&text=' + encodeURIComponent(m);
+        var post = 'https://translate.yandex.net/api/v1.5/tr.json/translate?lang=en&key=' + CONFIG.yandex_api_key + '&text=' + encodeURIComponent(m);
+
         unirest.get(post, headers, function(res) {
 
-          // now we have translated message - pull it out and remove quotes around it
-          var translated = res.body.text[0].replace(/^"(.+)"$/,'$1');
+          console.log("\n\n\n result body is:");
+          console.log(res.body);
+
+          // now we have translated message - pull it out and remove quotes around it that stringify adds
+          var translated = JSON.stringify( res.body.text[0] ).replace(/^"(.+)"$/,'$1');
+
+          // console.log("\n\n\n translated 1 = "+translated);
+
+          // unescape double quotes and remove from start and end of string
+          translated = translated.replace(/\\\"/g, "\"");
+          // console.log("\n\n\n translated 2 = "+translated);
+
+          // remove double slash to single slash
+          translated = translated.replace(/\\\\/g, "\\");
+          // console.log("\n\n\n translated 3 = "+translated);
+
+          // and finally remove any other double quotes enclosing the whole thing
+          translated = translated.replace(/^"(.+)"$/,'$1')
+          // console.log("\n\n\n translated LAST = "+translated);
+
+          translated = translated.replace(/\\n/g, '\n')
+          // console.log("\n\n\n translated LAST = "+translated);
 
           // console.log("\n\n\n");
           // console.log(translated);
 
           // post it to slack
           // TODO - see if translation was already posted and if so, don't post it again
+
+          // translated = "Kartoffel\nGross Kartoffel"
+
+          // console.log(translated);
+
+          // set up correct emoji flag to show source lang
+          var langcode = res.body.lang.substring(0,2);  // get source language
+          var flag = langcode
+          if(flag == 'en') flag = 'us';
+
           msg.say({
-            text: translated,
-            thread_ts: reply_thread
+            text: translated + "\n_(from " + langcode.toUpperCase() + " :flag-" + flag + ":)_",
+            thread_ts: reply_thread,
           })
         } )
 
