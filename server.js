@@ -31,7 +31,8 @@ var slapp = Slapp({
   // Beep Boop sets the SLACK_VERIFY_TOKEN env var
   verify_token: process.env.SLACK_VERIFY_TOKEN,
   convo_store: ConvoStore({ debug: true }),
-  context: Context()
+  context: Context(),
+  log: true
 })
 
 
@@ -58,7 +59,7 @@ slapp.command('/tron', /(.*)/, (msg, text, match) => {
 
       // console.log("\n\n------------------");
       console.log(s);
-/
+
       // add the translation as a reply to this individual message
       var reply_thread = s.ts;
       // console.log("reply thread is "+s.ts)
