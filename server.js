@@ -95,7 +95,7 @@ slapp.command('/tron', /(.*)/, (msg, text, match) => {
           // console.log("\n\n\n translated 3 = "+translated);
 
           // and finally remove any other double quotes enclosing the whole thing
-          translated = translated.replace(/^"(.+)"$/,'$1')
+          translated = translated.replace(/^"(.+)"$/, '$1')
           // console.log("\n\n\n translated LAST = "+translated);
 
           translated = translated.replace(/\\n/g, '\n')
@@ -112,8 +112,8 @@ slapp.command('/tron', /(.*)/, (msg, text, match) => {
           // console.log(translated);
 
           // set up correct emoji flag to show source lang
-          var langcode = res.body.lang.substring(0,2);  // get source language
-          var flag = langcode
+          var langcode = res.body.lang.substring(0,2);  // get source language like "de" or "en"
+          var flag = langcode;
           if(flag == 'en') flag = 'us';
 
           msg.say({
