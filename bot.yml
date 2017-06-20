@@ -1,4 +1,10 @@
 name: translate-o-tron
 description: Translate messages in Slack
 avatar: .beepboop/avatar.png
+slackscopes:
+  - bot
+  - commands
+  - incoming-webhook
+  - channels:history
+
 # To learn everything supported in the bot.yml file, visit https://beepboophq.com/docs/article/bot-yml
