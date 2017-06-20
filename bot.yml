@@ -6,5 +6,15 @@ slackscopes:
   - commands
   - incoming-webhook
   - channels:history
+config:
+  - name: slack_token
+    friendly_name: Slack token
+    info: Slack token for using Slack API
+    type: secret
+    global: true
+  - name: yandex_api_key
+    friendly_name: Yandex translation API key
+    type: secret
+    global: true
 
 # To learn everything supported in the bot.yml file, visit https://beepboophq.com/docs/article/bot-yml
