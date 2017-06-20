@@ -58,7 +58,7 @@ slapp.command('/tron', /(.*)/, (msg, text, match) => {
     for (let s of data.messages) {
 
       // console.log("\n\n------------------");
-      console.log(s);
+      // console.log(s);
 
       // add the translation as a reply to this individual message
       var reply_thread = s.ts;
@@ -67,8 +67,6 @@ slapp.command('/tron', /(.*)/, (msg, text, match) => {
       if (s.subtype != 'bot_message' && s.subtype != 'channel_join') {
 
         var m = JSON.stringify(s.text)
-
-        console.log("\n\n\n message after stringify "+m);
 
         // translate it with Yandex - not as good as Google Translate, but it's free!
         // see https://tech.yandex.com/translate/doc/dg/reference/translate-docpage/
@@ -79,8 +77,8 @@ slapp.command('/tron', /(.*)/, (msg, text, match) => {
 
         unirest.get(post, headers, function(res) {
 
-          console.log("\n\n\n result body is:");
-          console.log(res.body);
+          // console.log("\n\n\n result body is:");
+          // console.log(res.body);
 
           // now we have translated message - pull it out and remove quotes around it that stringify adds
           var translated = JSON.stringify( res.body.text[0] ).replace(/^"(.+)"$/,'$1');
