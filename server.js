@@ -1,13 +1,28 @@
+/*
+
+Simple Translation Bot
+
+This bot translates Slack messages from German to English
+
+v0.1 - 20 June 2017
+
+created by Eric Mueller, eric@ericmueller.org
+
+For use on BeepBoop platfom
+
+ */
+
 'use strict'
 
 const express = require('express')
 const Slapp = require('slapp')
 const ConvoStore = require('slapp-convo-beepboop')
 const Context = require('slapp-context-beepboop')
-var slack = require('slack')
+const unirest = require('unirest');
+const slack = require('slack')
+const jsonfile = require('jsonfile')
 
-
-
+const CONFIG = require('config.json')('./conf.json');
 
 // use `PORT` env var on Beep Boop - default to 3000 locally
 var port = process.env.PORT || 3000
@@ -19,42 +34,80 @@ var slapp = Slapp({
   context: Context()
 })
 
-var HELP_TEXT = `
-I will respond to the following messages:
-\`help\` - to see this message.
-\`hi\` - to demonstrate a conversation that tracks state.
-\`thanks\` - to demonstrate a simple response.
-\`<type-any-other-text>\` - to demonstrate a random emoticon response, some of the time :wink:.
-\`attachment\` - to see a Slack attachment message.
-`
+
 
 //* ********************************************
 // Setup different handlers for messages
 //* ********************************************
 
-// response to the user typing "help"
-slapp.message('help', ['mention', 'direct_message'], (msg) => {
-  msg.say(HELP_TEXT)
-})
 
+// translate the most recent x messages
 
-// get the most recent message in the channel
-slapp.message('recent', ['mention', 'direct_message'], (msg) => {
+slapp.command('/tron', /(.*)/, (msg, text, match) => {
+  let token = CONFIG.slack_token; // msg.meta.app_token
+  // let channel = msg.body.event.channel;
+  let channel = msg.body.channel_id;
 
-  var token = msg.body.token;
-  var channel = msg.body.event.channel;
+  var v = 0;
 
   // want to use https://api.slack.com/methods/channels.history/test API call here
-  ret = slack.channels.history({token, channel, 'count': 1}, (err, data) => { })
+  slack.channels.history({token, channel}, (err, data) => {
 
-  // most recent message
-  msg.say(`results ${JSON.stringify(ret)}`)
+    // walk through each message and translate it
+    for (let s of data.messages) {
+
+      // console.log("\n\n------------------");
+      // console.log(s);
+
+      // add the translation as a reply to this individual message
+      var reply_thread = s.ts;
+      // console.log("reply thread is "+s.ts)
+
+      if (s.subtype != 'bot_message' && s.subtype != 'channel_join') {
+
+        var m = JSON.stringify(s.text)
+
+        // translate it with Yandex - not as good as Google Translate, but it's free!
+        // see https://tech.yandex.com/translate/doc/dg/reference/translate-docpage/
+
+        // TODO let the user specify source and target languages
+        var headers = {'accept' : "json"};
+        var post = 'https://translate.yandex.net/api/v1.5/tr.json/translate?lang=de-en&key=' + CONFIG.yandex_api_key + '&text=' + encodeURIComponent(m);
+        unirest.get(post, headers, function(res) {
+
+          // now we have translated message - pull it out and remove quotes around it
+          var translated = res.body.text[0].replace(/^"(.+)"$/,'$1');
+
+          // console.log("\n\n\n");
+          // console.log(translated);
+
+          // post it to slack
+          // TODO - see if translation was already posted and if so, don't post it again
+          msg.say({
+            text: translated,
+            thread_ts: reply_thread
+          })
+        } )
+
+        // did we get enough valid messages?
+        v++;
+        if (v == parseInt(match)) break;    // yes - get out of the loop
+      }
+    }
+
+  })
+})
+
+/*
 
 
+// response to the user typing "help"
+slapp.message('help', ['mention', 'direct_message'], (msg) => {
+  msg.say(`TESTING ${HELP_TEXT}`)
 })
 
 
-// "Conversation" flow that tracks state - kicks off when user says hi, hello or hey
+ // "Conversation" flow that tracks state - kicks off when user says hi, hello or hey
 slapp
   .message('^(hi|hello|hey)$', ['direct_mention', 'direct_message'], (msg, text) => {
     msg
@@ -63,7 +116,7 @@ slapp
       .route('how-are-you', { greeting: text })
   })
   .route('how-are-you', (msg, state) => {
-    var text = (msg.body.event && msg.body.event.text) || ''
+    let text = (msg.body.event && msg.body.event.text) || ''
 
     // user may not have typed text as their next action, ask again and re-route
     if (!text) {
@@ -134,6 +187,9 @@ slapp.message('.*', ['direct_mention', 'direct_message'], (msg) => {
     msg.say([':wave:', ':pray:', ':raised_hands:'])
   }
 })
+*/
+
+
 
 // attach Slapp to express server
 var server = slapp.attachToExpress(express())
@@ -144,5 +200,5 @@ server.listen(port, (err) => {
     return console.error(err)
   }
 
-  console.log(`Listening on port ${port}`)
+  console.log(`Listening on port ${port} - local`)
 })

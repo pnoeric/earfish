@@ -2,6 +2,19 @@
 
 This repository is meant as an example and starting point for building a Slack app on [Beep Boop][bb].  It's written in [node.js](), uses the [Slapp][slapp] library, and takes advantage of the [Slack Events API][slack-events-api].
 
+
+## conf.json
+
+The `conf.json` file should look like:
+
+```
+{
+  "slack_token": "xoxp-145549099010-144870712641-164271099346-79576e404e0733c0d7b71f39870d03ca",
+  "yandex_api_key": "trnsl.1.1.20170620T093844Z.a1fc06dd2e11342f.05e081a4cb71875cdace33b0f468519bd07df5b9"
+}
+```
+
+
 ## Setup Instructions
 
 Once you've created a new [Beep Boop](bb) project with this repo, go to your project's **Settings** tab and enable a Slack App.
