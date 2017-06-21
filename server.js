@@ -130,6 +130,111 @@ slapp.command('/tron', /(.*)/, (msg, text, match) => {
   })
 })
 
+
+slapp.message('(.*)', (msg) => {
+
+  /*
+
+   Message {
+     type: 'event',
+     body: {
+       token: 'XXXXXXXXXXXXXXXXXXXXX',
+       team_id: 'XXXXXXX',
+       api_app_id: 'XXXXXXXXX',
+       event: {
+         type: 'message',
+         user: 'XXXXXXX',
+         text: 'blargp',
+         ts: 'XXXXXXXXXXXXX.XXXXXXXX',
+         channel: 'XXXXXX',
+         event_ts: 'XXXXXXXXXXXX.XXXXXXXX'
+       },
+       type: 'event_callback',
+       authed_users: [ 'XXXXXXXXX' ],
+       event_id: 'XXXXXXXXX',
+       event_time: 1497971718
+       },
+       meta: {
+         verify_token: 'XXXXXXXXXXXXXXXXXXXXXXXX',
+         user_id: 'XXXXXXXXX',
+         bot_id: undefined,
+         channel_id: 'XXXXXX',
+         team_id: 'XXXXXX',
+         app_token: 'xoxp-XXXXXXXXX [removed] xxxxxxx',
+         app_user_id: 'XXXXXXXX',
+         app_bot_id: 'XXXXXXXXX',
+         bot_token: 'xoxb-XXXXXXXXX [removed] XXXXXXXX',
+         bot_user_id: 'XXXXXX',
+         bot_user_name: 'translateotron',
+         team_name: 'XXXXXX',
+         team_domain: 'XXXXXX',
+         team_resource_id: 'XXXXXXXXXXXXXXXXX',
+         incoming_webhook_url: '',
+         incoming_webhook_channel: '',
+         error: undefined,
+         config: {}
+     }
+   }
+   */
+
+  if(msg.body.event.type == 'message') {
+
+    var m = JSON.stringify(msg.body.event.text)
+    var reply_thread = msg.body.event.event_ts;
+
+    // TODO let the user specify source and target languages
+    var headers = {'accept': "json"};
+    var post = 'https://translate.yandex.net/api/v1.5/tr.json/translate?lang=en&key=' + CONFIG.yandex_api_key + '&text=' + encodeURIComponent(m);
+
+    unirest.get(post, headers, function (res) {
+
+      // console.log("\n\n\n result body is:");
+      // console.log(res.body);
+
+      // now we have translated message - pull it out and remove quotes around it that stringify adds
+      var translated = JSON.stringify(res.body.text[0]).replace(/^"(.+)"$/, '$1');
+
+      // console.log("\n\n\n translated 1 = "+translated);
+
+      // unescape double quotes and remove from start and end of string
+      translated = translated.replace(/\\\"/g, "\"");
+      // console.log("\n\n\n translated 2 = "+translated);
+
+      // remove double slash to single slash
+      translated = translated.replace(/\\\\/g, "\\");
+      // console.log("\n\n\n translated 3 = "+translated);
+
+      // and finally remove any other double quotes enclosing the whole thing
+      translated = translated.replace(/^"(.+)"$/, '$1')
+      // console.log("\n\n\n translated LAST = "+translated);
+
+      translated = translated.replace(/\\n/g, '\n')
+      // console.log("\n\n\n translated LAST = "+translated);
+
+      // console.log("\n\n\n");
+      // console.log(translated);
+
+      // post it to slack
+      // TODO - see if translation was already posted and if so, don't post it again
+
+      // translated = "Kartoffel\nGross Kartoffel"
+
+      console.log(translated);
+
+      // set up correct emoji flag to show source lang
+      var langcode = res.body.lang.substring(0, 2);  // get source language like "de" or "en"
+      var flag = langcode;
+      if (flag != 'en') {
+        msg.say({
+          text: translated + "\n_(from " + langcode.toUpperCase() + " :flag-" + flag + ":)_",
+          thread_ts: reply_thread,
+        })
+      }
+
+    })
+  }
+})
+
 /*
 
 
