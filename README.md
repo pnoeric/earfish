@@ -1,4 +1,11 @@
-# translate-o-tron
+# Earfish
+
+A simple translator: invite it to a channel, and it will change any messages NOT in English to English.
+
+(Lots more feature ideas planned!)
+
+
+Requires you to set up a Yandex Translation API key ahead of time, and do some work on Beep Boop.
 
 This repository is meant as an example and starting point for building a Slack app on [Beep Boop][bb].  It's written in [node.js](), uses the [Slapp][slapp] library, and takes advantage of the [Slack Events API][slack-events-api].
 
