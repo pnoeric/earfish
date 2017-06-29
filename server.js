@@ -1,8 +1,8 @@
 /*
 
-Simple Translation Bot
+Earfish
 
-This bot translates Slack messages from German to English
+This Slack bot translates Slack messages from German to English
 
 v0.1 - 20 June 2017
 
@@ -45,7 +45,9 @@ var slapp = Slapp({
 // translate the most recent x messages
 
 slapp.command('/tron', /(.*)/, (msg, text, match) => {
-  let token = CONFIG.slack_token; // msg.meta.app_token
+  if(CONFIG) var token = CONFIG.slack_token; // msg.meta.app_token
+  if(!token) var token = process.env.slack_token;
+
   // let channel = msg.body.event.channel;
   let channel = msg.body.channel_id;
 
@@ -64,7 +66,8 @@ slapp.command('/tron', /(.*)/, (msg, text, match) => {
       var reply_thread = s.ts;
       // console.log("reply thread is "+s.ts)
 
-      if (s.subtype != 'bot_message' && s.subtype != 'channel_join') {
+      // avoid bot messages from ourselves
+      if (s.subtype != 'bot_message') {
 
         var m = JSON.stringify(s.text)
 
@@ -72,8 +75,11 @@ slapp.command('/tron', /(.*)/, (msg, text, match) => {
         // see https://tech.yandex.com/translate/doc/dg/reference/translate-docpage/
 
         // TODO let the user specify source and target languages
+        if(CONFIG) var ykey = CONFIG.yandex_api_key ; // msg.meta.app_token
+        if(!ykey) var ykey = process.env.yandex_api_key;
+
         var headers = {'accept' : "json"};
-        var post = 'https://translate.yandex.net/api/v1.5/tr.json/translate?lang=en&key=' + CONFIG.yandex_api_key + '&text=' + encodeURIComponent(m);
+        var post = 'https://translate.yandex.net/api/v1.5/tr.json/translate?lang=en&key=' + ykey + '&text=' + encodeURIComponent(m);
 
         unirest.get(post, headers, function(res) {
 
@@ -177,14 +183,24 @@ slapp.message('(.*)', (msg) => {
    }
    */
 
+  // console.log("\n\n------------------");
+  // console.log(msg);
+
+  console.log(msg.meta);
+
   if(msg.body.event.type == 'message') {
 
     var m = JSON.stringify(msg.body.event.text)
     var reply_thread = msg.body.event.event_ts;
 
+    console.log(process.env);
+
     // TODO let the user specify source and target languages
-    var headers = {'accept': "json"};
-    var post = 'https://translate.yandex.net/api/v1.5/tr.json/translate?lang=en&key=' + CONFIG.yandex_api_key + '&text=' + encodeURIComponent(m);
+    if (typeof CONFIG !== 'undefined') var ykey = CONFIG.yandex_api_key; // msg.meta.app_token
+    if(!ykey) var ykey = process.env.yandex_api_key;
+
+    var headers = {'accept' : "json"};
+    var post = 'https://translate.yandex.net/api/v1.5/tr.json/translate?lang=en&key=' + ykey + '&text=' + encodeURIComponent(m);
 
     unirest.get(post, headers, function (res) {
 
@@ -208,16 +224,14 @@ slapp.message('(.*)', (msg) => {
       translated = translated.replace(/^"(.+)"$/, '$1')
       // console.log("\n\n\n translated LAST = "+translated);
 
-      translated = translated.replace(/\\n/g, '\n')
-      // console.log("\n\n\n translated LAST = "+translated);
+      // fix tabs
+      translated = translated.replace(/\\t/g, '\t');
 
-      // console.log("\n\n\n");
-      // console.log(translated);
+      // fix newlines
+      translated = translated.replace(/\\n/g, '\n')
 
       // post it to slack
       // TODO - see if translation was already posted and if so, don't post it again
-
-      // translated = "Kartoffel\nGross Kartoffel"
 
       console.log(translated);
 
