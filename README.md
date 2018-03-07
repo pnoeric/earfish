@@ -1,5 +1,5 @@
 # Earfish
-## a Slack bot created by Eric Mueller
+#### a Slack bot created by Eric Mueller
 
 A simple translator: invite it to a Slack channel, and it will change any messages NOT in English to English.
 
